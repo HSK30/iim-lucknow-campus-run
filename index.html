@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover,interactive-widget=resizes-visual">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -328,9 +328,13 @@
   canvas.width = W * R; canvas.height = H * R;
   const ctx = canvas.getContext('2d');
 
+  let fitted = false;
   function fit() {
-    const vv = window.visualViewport;
-    const iw = Math.max(1, (vv && vv.width) || window.innerWidth), ih = Math.max(1, (vv && vv.height) || window.innerHeight);
+    // never re-layout while the keyboard is open: the on-screen keyboard shrinks the viewport and would shuffle the page
+    const ae = document.activeElement;
+    if (fitted && ae && (ae.tagName === 'INPUT' || ae.tagName === 'TEXTAREA')) return;
+    fitted = true;
+    const iw = Math.max(1, window.innerWidth), ih = Math.max(1, window.innerHeight);
     const nh = Math.max(740, Math.min(1200, Math.round(W * ih / iw)));
     const s = Math.min(iw / W, ih / nh);
     if (nh !== H || canvas.height !== nh * R) {
@@ -346,7 +350,7 @@
   }
   window.addEventListener('resize', fit);
   window.addEventListener('orientationchange', () => { setTimeout(fit, 150); setTimeout(fit, 500); });
-  if (window.visualViewport) window.visualViewport.addEventListener('resize', fit);
+  document.addEventListener('focusout', () => { setTimeout(() => { window.scrollTo(0, 0); fit(); }, 350); });
   fit(); setTimeout(fit, 300);
 
   // no pinch zoom, no double tap zoom, no page scrolling or rubber banding on touch screens
