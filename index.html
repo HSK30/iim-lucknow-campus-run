@@ -1,21 +1,27 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Campus Sprint</title>
 <meta name="description" content="Campus Sprint: run the IIM Lucknow campus loop, grab snacks, dodge the professors.">
 <meta property="og:title" content="Campus Sprint">
 <meta property="og:description" content="Run the IIM Lucknow campus loop, grab snacks, dodge the professors. Can you beat my score?">
 <meta name="theme-color" content="#1d0a36">
 </head><body>
+<div id="safe"></div>
 <style>
   :root { color-scheme: dark; }
   :root { --maroon:#8b1e1e; --brick:#b5502f; --gold:#ffd25e; --cream:#f6ecd9; --ink:#2a1a14; }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  html, body { width: 100%; height: 100%; overflow: hidden; background: #14110f;
+  html, body { position: fixed; inset: 0; width: 100%; height: 100%; overflow: hidden; background: #14110f; overscroll-behavior: none;
+    -webkit-touch-callout: none; -webkit-text-size-adjust: 100%; -webkit-tap-highlight-color: transparent;
     font-family: "Courier New", Courier, monospace; touch-action: none;
     user-select: none; -webkit-user-select: none; }
-  #stage { position: fixed; left: 50%; top: 50%; width: 480px; height: 800px; transform-origin: center center; }
-  canvas { width: 480px; height: 800px; display: block; }
+  #stage { position: fixed; left: 50%; top: 50%; width: 480px; height: 800px; transform-origin: center center; touch-action: none; }
+  #safe { position: fixed; left: 0; top: 0; width: 0; height: 0; visibility: hidden; padding-top: env(safe-area-inset-top, 0px); }
+  canvas { width: 480px; height: 100%; display: block; touch-action: none; }
   .overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
     padding: 16px; background: rgba(20, 12, 8, .8); }
   .overlay.hidden { display: none; }
@@ -38,7 +44,7 @@
     text-transform: uppercase; color: var(--cream); background: var(--maroon); border: 4px solid var(--ink);
     box-shadow: 4px 4px 0 var(--ink); cursor: pointer; }
   button:active { transform: translate(3px, 3px); box-shadow: 1px 1px 0 var(--ink); }
-  .overlay { overflow-y: auto; align-items: flex-start; }
+  .overlay { overflow-y: auto; align-items: flex-start; touch-action: pan-y; padding-top: calc(16px + var(--safe, 0px)); }
   .card { margin: auto 0; }
   input { user-select: text; -webkit-user-select: text; width: 100%; font: 700 20px "Courier New", monospace;
     text-align: center; padding: 9px; border: 4px solid var(--ink); background: #fff; color: var(--ink);
@@ -121,6 +127,25 @@
   #btnJ { left: 50%; margin-left: -52px; width: 104px; height: 104px; border-radius: 50%; font: 700 18px "Courier New", monospace; letter-spacing: .08em; color: #f6ecd9; }
   #btnJ.down { color: #2a1a14; }
   .logo span:only-child { color: #ffd25e; margin-top: 0; }
+
+  .how { width: 100%; max-width: 410px; margin: 4px 0 14px; }
+  .hrow { display: flex; gap: 8px; }
+  .htile { flex: 1; border: 3px solid #f6ecd9; background: rgba(15,8,4,.6); color: #f6ecd9; font-weight: 900; font-size: 20px; letter-spacing: .06em; padding: 10px 6px 8px; line-height: 1.15; }
+  .htile svg { width: 38px; height: 38px; fill: #ffd25e; display: block; margin: 0 auto 4px; }
+  .htile small { display: block; font-size: 14px; font-weight: 700; letter-spacing: 0; opacity: .85; margin-top: 2px; }
+  .hjump { margin-top: 8px; background: #ffd25e; color: #2a1a14; border: 3px solid #2a1a14; padding: 9px 6px; font-weight: 900; font-size: 21px; letter-spacing: .08em; box-shadow: 4px 4px 0 #8b1e1e; }
+  .hkeys { margin-top: 8px; color: #f6ecd9; font-size: 13px; opacity: .75; }
+  @media (hover: none) { .hkeys { display: none; } }
+  .tbody { height: 100%; justify-content: space-evenly; padding-top: calc(30px + var(--safe, 0px)); padding-bottom: 104px; }
+  #hero { max-width: 230px; margin-top: 0; }
+  .logo { font-size: 72px; margin-top: 10px; }
+  .tscreen.compact .tkick { font-size: 12px; }
+  .tscreen.compact #hero { max-width: 190px; }
+  .tscreen.compact .htile { font-size: 18px; padding: 7px 4px 6px; }
+  .tscreen.compact .htile svg { width: 30px; height: 30px; }
+  #snd { top: calc(8px + var(--safe, 0px)); }
+  .tplay { margin-top: 2px; }
+  .tkick { margin-top: 26px; }
 </style>
 
 <div id="stage">
@@ -133,7 +158,14 @@
       <div class="tkick">IIM LUCKNOW</div>
       <h1 class="logo"><span>Campus</span><span>Sprint</span></h1>
       <canvas id="hero" width="480" height="380"></canvas>
-      <p class="tline">Sprint the 200 acres. Dodge the profs. Grab every snack.</p>
+      <div class="how">
+        <div class="hrow">
+          <div class="htile"><svg viewBox="0 0 24 24"><polygon points="16,3 6,12 16,21"/></svg>TAP LEFT<small>to turn left</small></div>
+          <div class="htile"><svg viewBox="0 0 24 24"><polygon points="8,3 18,12 8,21"/></svg>TAP RIGHT<small>to turn right</small></div>
+        </div>
+        <div class="hjump">DOUBLE TAP = JUMP</div>
+        <div class="hkeys">Keyboard: arrow keys to steer, Space to jump</div>
+      </div>
       <button id="titlePlay" class="tplay" type="button">Play</button>
       <button id="titleChange" class="tlink" type="button" hidden></button>
       <div class="tbest" id="titleBest"></div>
@@ -150,7 +182,7 @@
       <div class="lbl">Cloak: <b id="outfitName"></b></div>
       <div class="outfits" id="outfits"></div>
       <ul class="legend">
-        <li><b>Steer</b> left and right. <b>Jump</b> over potholes.</li>
+        <li><b>Tap and hold</b> the left or right side of the screen to steer. <b>Double tap</b> to jump over potholes.</li>
         <li><b>Avoid</b> trees, the fence and professors.</li>
         <li><b>Collect</b> snacks for points. Red Bull = speed, offer letter = shield.</li>
         <li><b>Careful:</b> parties and case studies mess you up.</li>
@@ -158,7 +190,7 @@
       </ul>
       <div class="stat" id="bestMenu"></div>
       <button id="playBtn">Start Running</button><br><button id="menuBack" class="ghost" type="button">Back</button>
-      <div class="hint">Keys: Left / Right to steer, Up or Space to jump, M for sound<br>Touch: use the left and right buttons, JUMP in the middle</div>
+      <div class="hint">Touch: tap and hold left or right to steer, double tap to jump<br>Keys: Left / Right to steer, Up or Space to jump, M for sound</div>
     </div>
   </div>
 
@@ -179,11 +211,6 @@
       <button id="againBtn">Run Again</button><br>
       <button id="changeBtn" class="ghost">Change Name / Cloak</button>
     </div>
-  </div>
-  <div id="ctl" hidden>
-    <div id="btnL" class="cbtn" role="button" aria-label="Steer left"><svg viewBox="0 0 24 24"><polygon points="16,3 6,12 16,21"/></svg></div>
-    <div id="btnJ" class="cbtn" role="button" aria-label="Jump">JUMP</div>
-    <div id="btnR" class="cbtn" role="button" aria-label="Steer right"><svg viewBox="0 0 24 24"><polygon points="8,3 18,12 8,21"/></svg></div>
   </div>
   <button id="snd" type="button" aria-pressed="false">SOUND ON</button>
 </div>
@@ -209,7 +236,7 @@
     bounceMin: 4, bounceMax: 5,   // case study auto-jump seconds
     streakWindow: 4,     // seconds to grab the next snack and keep the streak
     minRowGap: 190,      // closest spacing between obstacle rows (world units)
-    spawnAhead: 800      // how far ahead of the runner new rows appear
+    spawnAhead: 950      // how far ahead of the runner new rows appear
   };
 
   // outfits the player can pick on the start screen
@@ -276,19 +303,44 @@
   const isDeadly = t => DEADLY.includes(t);
 
   // ---------------- canvas setup ----------------
-  const W = 480, H = 800, R = 2;
-  const ANCHOR_X = W / 2, ANCHOR_Y = 580;     // where the runner sits on screen
+  const W = 480, R = 2;
+  let H = 800, SAFE_TOP = 0;                    // logical height adapts to the device screen
+  const ANCHOR_X = W / 2;
+  let ANCHOR_Y = 580;                          // where the runner sits on screen
   const stage = document.getElementById('stage');
   const canvas = document.getElementById('c');
   canvas.width = W * R; canvas.height = H * R;
   const ctx = canvas.getContext('2d');
 
   function fit() {
-    const s = Math.min(window.innerWidth / W, window.innerHeight / H);
+    const vv = window.visualViewport;
+    const iw = Math.max(1, (vv && vv.width) || window.innerWidth), ih = Math.max(1, (vv && vv.height) || window.innerHeight);
+    const nh = Math.max(740, Math.min(1200, Math.round(W * ih / iw)));
+    const s = Math.min(iw / W, ih / nh);
+    if (nh !== H || canvas.height !== nh * R) {
+      H = nh; ANCHOR_Y = Math.round(H * 0.725);
+      canvas.height = H * R; stage.style.height = H + 'px';
+    }
     stage.style.transform = 'translate(-50%,-50%) scale(' + s + ')';
+    let inset = 0;
+    try { inset = parseFloat(getComputedStyle(document.getElementById('safe')).paddingTop) || 0; } catch (e) {}
+    SAFE_TOP = Math.round(inset / s);
+    stage.style.setProperty('--safe', SAFE_TOP + 'px');
+    document.getElementById('title').classList.toggle('compact', H < 800);
   }
   window.addEventListener('resize', fit);
-  fit();
+  window.addEventListener('orientationchange', () => { setTimeout(fit, 150); setTimeout(fit, 500); });
+  if (window.visualViewport) window.visualViewport.addEventListener('resize', fit);
+  fit(); setTimeout(fit, 300);
+
+  // no pinch zoom, no double tap zoom, no page scrolling or rubber banding on touch screens
+  ['gesturestart', 'gesturechange', 'gestureend'].forEach(t => document.addEventListener(t, e => e.preventDefault(), { passive: false }));
+  const inScroll = e => e.target && e.target.closest && e.target.closest('.overlay, input');
+  document.addEventListener('touchmove', e => { if (!inScroll(e) || e.touches.length > 1) e.preventDefault(); }, { passive: false });
+  let lastTE = 0;
+  document.addEventListener('touchend', e => { const n = Date.now(); if (n - lastTE < 400 && !(e.target && e.target.closest && e.target.closest('input'))) e.preventDefault(); lastTE = n; }, { passive: false });
+  document.addEventListener('dblclick', e => e.preventDefault());
+  document.addEventListener('contextmenu', e => e.preventDefault());
 
   const ROAD_HALF = 150, ROAD_W = 300, CURB = 14;
   const EDGE = ROAD_HALF + CURB;      // where the road surface and curb end (grass starts)
@@ -733,6 +785,7 @@
   function startGame() {
     reset();
     banner = { text: playerName, pre: "LET'S RUN", t: 2.2 };
+    if (isTouch) toast('Tap left / right to steer. Double tap to jump', '#ffd25e');
     state = 'play';
     document.getElementById('title').classList.add('hidden');
     document.getElementById('menu').classList.add('hidden');
@@ -854,42 +907,23 @@
     if (document.hidden) { keyL = false; keyR = false; if (state === 'play') state = 'pause'; }
   });
 
+  const isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints || 0) > 0;
+  let lastTap = 0;
   canvas.addEventListener('pointerdown', e => {
     if (state === 'pause') { state = 'play'; return; }
     try { canvas.setPointerCapture(e.pointerId); } catch (err) {}
     const r = stage.getBoundingClientRect();
     const rel = (e.clientX - r.left) / r.width;
-    const reg = rel < 0.4 ? -1 : rel > 0.6 ? 1 : 0;
+    const reg = rel < 0.5 ? -1 : 1;                 // left half steers left, right half steers right
     ptr.set(e.pointerId, { reg, y: e.clientY, jumped: false });
-    if (reg === 0) jump();
+    const tn = performance.now();
+    if (tn - lastTap < 340) { lastTap = 0; jump(); } else lastTap = tn;     // double tap anywhere to jump
   });
   canvas.addEventListener('pointermove', e => {
     const p = ptr.get(e.pointerId);
     if (p && !p.jumped && p.y - e.clientY > 40) { p.jumped = true; jump(); }   // swipe up to jump
   });
   ['pointerup', 'pointercancel'].forEach(t => canvas.addEventListener(t, e => ptr.delete(e.pointerId)));
-
-  // on-screen buttons for touch screens
-  const ctlEl = document.getElementById('ctl');
-  const isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints || 0) > 0 || (window.matchMedia && matchMedia('(pointer: coarse)').matches);
-  function holdBtn(id, on, off) {
-    const el = document.getElementById(id);
-    el.addEventListener('pointerdown', e => {
-      e.preventDefault();
-      if (state === 'pause') { state = 'play'; return; }
-      try { el.setPointerCapture(e.pointerId); } catch (err) {}
-      el.classList.add('down'); on();
-    });
-    ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(t => el.addEventListener(t, () => { el.classList.remove('down'); off(); }));
-  }
-  holdBtn('btnL', () => { btnLd = true; }, () => { btnLd = false; });
-  holdBtn('btnR', () => { btnRd = true; }, () => { btnRd = false; });
-  holdBtn('btnJ', () => jump(), () => {});
-  let ctlShown = null;
-  function syncCtl() {
-    const want = isTouch && (state === 'play' || state === 'pause' || state === 'dying');
-    if (want !== ctlShown) { ctlShown = want; ctlEl.hidden = !want; }
-  }
 
   function steerInput() {
     let v = (keyR ? 1 : 0) - (keyL ? 1 : 0);
@@ -1430,7 +1464,7 @@
   function drawItem(it) {
     const p = wpos(it.s, it.d);
     const dx = p.x - camX, dy = p.y - camY;
-    if (dx * dx + dy * dy > 760 * 760) return;
+    if (dx * dx + dy * dy > 900 * 900) return;
     ctx.save(); ctx.translate(p.x, p.y);
     if (it.flat) ctx.rotate(p.th + Math.PI / 2);     // lies flat on the road
     else ctx.rotate(-camAngle);                        // stays upright on screen for readability
@@ -1610,8 +1644,8 @@
   }
 
   function drawWorld() {
-    ctx.fillStyle = grassPat; ctx.fillRect(camX - 950, camY - 950, 1900, 1900);
-    const runs = buildRuns(camX, camY, 780);
+    ctx.fillStyle = grassPat; ctx.fillRect(camX - 1150, camY - 1150, 2300, 2300);
+    const runs = buildRuns(camX, camY, 920);
     // run-off strip beside the road (grass zone), then the fence
     strokeLayer(runs, 0, FENCE * 2, 'rgba(176,150,96,.5)');
     strokeLayer(runs, -FENCE, 4, '#7a5a38');
@@ -1627,7 +1661,7 @@
     // start / finish line
     {
       const sp = wpos(0, 0), dx = sp.x - camX, dy = sp.y - camY;
-      if (dx * dx + dy * dy < 760 * 760) {
+      if (dx * dx + dy * dy < 900 * 900) {
         ctx.save(); ctx.translate(sp.x, sp.y); ctx.rotate(sp.th);
         for (let r = 0; r < 10; r++) for (let c = 0; c < 2; c++) {
           ctx.fillStyle = (r + c) % 2 ? '#111' : '#f4f4f4';
@@ -1639,18 +1673,18 @@
     // scenery
     for (const t of TREES) {
       const dx = t.x - camX, dy = t.y - camY;
-      if (dx * dx + dy * dy < 800 * 800) drawTree(t.x, t.y, t.r);
+      if (dx * dx + dy * dy < 940 * 940) drawTree(t.x, t.y, t.r);
     }
     for (const l of LAMPS) {
       const dx = l.x - camX, dy = l.y - camY;
-      if (dx * dx + dy * dy < 800 * 800) {
+      if (dx * dx + dy * dy < 940 * 940) {
         ctx.fillStyle = '#2a2a30'; ctx.beginPath(); ctx.arc(l.x, l.y, 5, 0, 6.283); ctx.fill();
         ctx.fillStyle = '#ffe9a0'; ctx.beginPath(); ctx.arc(l.x, l.y, 3, 0, 6.283); ctx.fill();
       }
     }
     for (const b of BUILDINGS) {
       const dx = b.x - camX, dy = b.y - camY;
-      if (dx * dx + dy * dy < 800 * 800) {
+      if (dx * dx + dy * dy < 940 * 940) {
         ctx.save(); ctx.translate(b.x, b.y); ctx.rotate(-camAngle); drawBuilding(b.name); ctx.restore();
       }
     }
@@ -1680,7 +1714,8 @@
   }
 
   function drawHUD() {
-    ctx.fillStyle = 'rgba(15,8,4,.7)'; ctx.fillRect(0, 0, W, 74);
+    ctx.save(); ctx.translate(0, SAFE_TOP);
+    ctx.fillStyle = 'rgba(15,8,4,.7)'; ctx.fillRect(0, -SAFE_TOP, W, 74 + SAFE_TOP);
     outlined(scoreNow() + '', 14, 40, 38, '#ffffff', 'left');
     outlined('Lap ' + lap + ' | ' + fmtTime(lapTime) + ' | snacks ' + snacks, 14, 64, 15, '#ffd25e', 'left');
     outlined(playerName, W - 14, 30, 18, '#f6ecd9', 'right');
@@ -1712,6 +1747,7 @@
       ctx.globalAlpha = 1;
     });
     drawMinimap();
+    ctx.restore();
   }
 
   function render() {
@@ -1729,7 +1765,7 @@
       ctx.globalAlpha = nightAmt;
       for (const l of LAMPS) {
         const dx = l.x - camX, dy = l.y - camY;
-        if (dx * dx + dy * dy < 700 * 700) drawLampGlow(l.x, l.y);
+        if (dx * dx + dy * dy < 840 * 840) drawLampGlow(l.x, l.y);
       }
       ctx.restore();
     }
@@ -1783,7 +1819,6 @@
       stepFx(dt);
     }
     render();
-    syncCtl();
     if (!document.getElementById('title').classList.contains('hidden')) drawHero(now / 1000);
     requestAnimationFrame(frame);
   }
