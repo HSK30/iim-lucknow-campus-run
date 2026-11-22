@@ -1,9 +1,9 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Campus Surfers</title>
-<meta name="description" content="Campus Surfers: run the IIM Lucknow campus loop, grab snacks, dodge the professors.">
-<meta property="og:title" content="Campus Surfers">
+<title>Campus</title>
+<meta name="description" content="Campus: run the IIM Lucknow campus loop, grab snacks, dodge the professors.">
+<meta property="og:title" content="Campus">
 <meta property="og:description" content="Run the IIM Lucknow campus loop, grab snacks, dodge the professors. Can you beat my score?">
 <meta name="theme-color" content="#1d0a36">
 </head><body>
@@ -94,14 +94,14 @@
   @keyframes slideB { to { background-position-x: -80px; } }
   .tbody { position: relative; z-index: 1; width: 100%; display: flex; flex-direction: column; align-items: center; text-align: center; padding: 44px 16px 96px; }
   .tkick { background: var(--maroon); color: var(--cream); font-weight: 700; letter-spacing: .42em; font-size: 14px; padding: 5px 8px 5px 14px; border: 2px solid var(--cream); }
-  .logo { margin: 14px 0 0; font: 900 76px/.9 "Courier New", Courier, monospace; text-transform: uppercase; letter-spacing: .01em; }
+  .logo { margin: 14px 0 0; font: 900 96px/.9 "Courier New", Courier, monospace; text-transform: uppercase; letter-spacing: .01em; }
   .logo span { display: block; }
   .logo span:first-child { color: #ffd25e; text-shadow: 0 4px 0 #8b1e1e, 0 8px 0 #4a0d12, 0 16px 22px rgba(0,0,0,.55); }
   .logo span:last-child { color: #f6ecd9; text-shadow: 0 4px 0 #8b1e1e, 0 8px 0 #4a0d12, 0 16px 22px rgba(0,0,0,.55); margin-top: 6px; }
   #hero { width: 100%; max-width: 380px; height: auto; margin: 6px auto 0; }
   .tline { color: #f6ecd9; font-size: 16px; line-height: 1.4; max-width: 340px; opacity: .92; margin: 2px 0 14px; }
-  .tplay { margin: 0; padding: 16px 40px; font-size: 26px; font-weight: 900; background: #ffd25e; color: #2a1a14; border: 4px solid #2a1a14;
-    box-shadow: 6px 6px 0 #8b1e1e; animation: pulse 1.7s ease-in-out infinite; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .tplay { margin: 0; padding: 14px 44px 16px; font-size: 26px; font-weight: 900; background: #ffd25e; color: #2a1a14; border: 4px solid #2a1a14;
+    box-shadow: 6px 6px 0 #8b1e1e; animation: pulse 1.7s ease-in-out infinite; max-width: 100%; line-height: 1.3; letter-spacing: .12em; white-space: nowrap; }
   .tplay:active { animation: none; }
   @keyframes pulse { 50% { transform: scale(1.05); } }
   .tlink { background: none; border: 0; box-shadow: none; color: #f6ecd9; text-decoration: underline; font-size: 14px; text-transform: none; letter-spacing: 0; margin-top: 10px; padding: 6px; }
@@ -120,6 +120,7 @@
   #btnR { right: 12px; }
   #btnJ { left: 50%; margin-left: -52px; width: 104px; height: 104px; border-radius: 50%; font: 700 18px "Courier New", monospace; letter-spacing: .08em; color: #f6ecd9; }
   #btnJ.down { color: #2a1a14; }
+  .logo span:only-child { color: #ffd25e; margin-top: 0; }
 </style>
 
 <div id="stage">
@@ -130,7 +131,7 @@
     <div class="troad"></div>
     <div class="tbody">
       <div class="tkick">IIM LUCKNOW</div>
-      <h1 class="logo"><span>Campus</span><span>Surfers</span></h1>
+      <h1 class="logo"><span>Campus</span></h1>
       <canvas id="hero" width="480" height="380"></canvas>
       <p class="tline">Sprint the 200 acres. Dodge the profs. Grab every snack.</p>
       <button id="titlePlay" class="tplay" type="button">Play</button>
@@ -142,7 +143,7 @@
   <div id="menu" class="overlay hidden">
     <div class="card">
       <div class="tag">IIM LUCKNOW</div>
-      <h1>Campus Surfers</h1>
+      <h1>Campus</h1>
       <label class="lbl" for="nameIn">Your name</label>
       <input id="nameIn" type="text" maxlength="14" autocomplete="off" spellcheck="false" autocapitalize="words">
       <div class="warn" id="nameWarn"></div>
@@ -646,7 +647,7 @@
       g.fillText(str, x, y, w || 960);
     };
     t('IIM LUCKNOW', 540, 160, 40, '#f6ecd9');
-    t('CAMPUS SURFERS', 540, 255, 82, '#ffd25e', 'center', 660);
+    t('CAMPUS', 540, 270, 110, '#ffd25e', 'center', 660);
     const o = OUTFITS[outfitIdx];
     g.save(); g.translate(130, 240); g.scale(4.2, 4.2); drawFront(g, o, 0); g.restore();
     g.save(); g.translate(950, 240); g.scale(-4.2, 4.2); drawFront(g, o, 1); g.restore();
@@ -664,16 +665,16 @@
       t(st[0], x + 30, 975, 24, '#6b5a4e', 'center', 220);
     });
     t('Can you beat me?', 540, 1190, 60, '#f6ecd9');
-    t(location.host || 'campus surfers', 540, 1260, 40, '#ffd25e');
+    t(location.host || 'campus', 540, 1260, 40, '#ffd25e');
     return c;
   }
   const toBlob = c => new Promise(r => c.toBlob(r, 'image/png'));
   function shareText() {
-    return 'I scored ' + lastRun.score + ' on Campus Surfers (' + lastRun.rank + ', ' + fmtSecs(lastRun.secs) + '). Can you beat me? ' + location.origin;
+    return 'I scored ' + lastRun.score + ' on Campus (' + lastRun.rank + ', ' + fmtSecs(lastRun.secs) + '). Can you beat me? ' + location.origin;
   }
   function downloadBlob(blob) {
     const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob); a.download = 'campus-surfers-score.png';
+    a.href = URL.createObjectURL(blob); a.download = 'campus-score.png';
     document.body.appendChild(a); a.click(); a.remove();
   }
   $('saveBtn').addEventListener('click', async () => {
@@ -685,7 +686,7 @@
     if (!lastRun) return;
     const msg = $('shareMsg'); msg.textContent = '';
     const blob = await toBlob(drawShareCard());
-    const file = new File([blob], 'campus-surfers-score.png', { type: 'image/png' });
+    const file = new File([blob], 'campus-score.png', { type: 'image/png' });
     try {
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
         await navigator.share({ files: [file], text: shareText() });
@@ -1519,13 +1520,11 @@
     g.fillStyle = o.shirt;
     g.fillRect(-18, -6 + (ph ? -3 : 3), 6, 10); g.fillRect(12, -6 + (ph ? 3 : -3), 6, 10);
     g.fillStyle = o.bag; g.fillRect(-18, 2 + (ph ? -3 : 3), 6, 2); g.fillRect(12, 2 + (ph ? 3 : -3), 6, 2);
-    // hood and mask
+    // hood only (no mask in the running view): a rounded hood with a pointed tip and a darker opening at the front
     g.fillStyle = o.hair; g.beginPath(); g.arc(0, -13, 10, 0, 6.283); g.fill();
-    if (maskOK()) { g.drawImage(MASK, -6.2, -27, 12.4, 15.8); return; }
-    g.fillStyle = '#f4efe4'; g.beginPath(); g.ellipse(0, -19.5, 6, 6.5, 0, 0, 6.283); g.fill();
-    g.fillStyle = '#e0453f'; g.fillRect(-4.6, -19, 2, 1.8); g.fillRect(2.6, -19, 2, 1.8);
-    g.fillStyle = '#111'; g.fillRect(-3.6, -22, 2.6, 1); g.fillRect(1, -22, 2.6, 1);
-    g.fillRect(-3.4, -17, 6.8, 1.2); g.fillRect(-0.6, -15.4, 1.2, 2);
+    g.beginPath(); g.moveTo(-7, -7); g.lineTo(0, 2); g.lineTo(7, -7); g.closePath(); g.fill();
+    g.fillStyle = 'rgba(0,0,0,.35)'; g.beginPath(); g.ellipse(0, -19.5, 5.5, 4, 0, 0, 6.283); g.fill();
+    g.fillStyle = o.bagLt; g.fillRect(-8, -7.5, 16, 1.6);
   }
 
   // the same character facing the viewer, used on the start page, the cloak picker and the share image

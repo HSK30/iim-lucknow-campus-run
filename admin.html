@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
-<title>Campus Surfers Admin</title>
+<title>Campus Admin</title>
 <style>
   :root { --bg:#14110f; --panel:#1e1916; --line:#3a2f29; --cream:#f6ecd9; --dim:#b9a995; --maroon:#8b1e1e; --gold:#ffd25e; --ok:#7ad39a; --bad:#ff7a8a; }
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -50,7 +50,7 @@
 <div class="wrap">
 
   <form id="login" class="login" autocomplete="off">
-    <h1>Campus Surfers <span>Admin</span></h1>
+    <h1>Campus <span>Admin</span></h1>
     <p>Enter the admin password to see players, scores and the leaderboard.</p>
     <label for="pw" class="meta">Password</label>
     <input id="pw" type="password" autocomplete="current-password" required>
@@ -60,7 +60,7 @@
 
   <div id="app" hidden>
     <div class="top">
-      <h1>Campus Surfers <span>Admin</span></h1>
+      <h1>Campus <span>Admin</span></h1>
       <div class="meta"><span id="liveDot" class="live">LIVE</span> | updated <span id="updated">never</span> | <button class="ghost" id="refresh" type="button">Refresh</button> <button class="ghost" id="logout" type="button">Log out</button></div>
     </div>
 
@@ -144,7 +144,7 @@
     const text = rows.map(r => r.map(c => '"' + String(c).replace(/"/g, '""') + '"').join(',')).join('\n');
     const a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob([text], { type: 'text/csv' }));
-    a.download = 'campus-surfers-' + tab + '.csv';
+    a.download = 'campus-' + tab + '.csv';
     document.body.appendChild(a); a.click(); a.remove();
   }
 
