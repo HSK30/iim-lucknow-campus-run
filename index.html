@@ -1501,6 +1501,9 @@
     ctx.restore();
   }
 
+  var MASK = new Image(); MASK.src = 'mask.png';
+  function maskOK() { return !!MASK && MASK.complete && MASK.naturalWidth > 0; }
+
   // the runner seen from above and behind (facing up): a hooded cloak with a mask peeking out of the front of the hood
   function drawFigure(g, o, ph) {
     g.fillStyle = o.pants;
@@ -1518,6 +1521,7 @@
     g.fillStyle = o.bag; g.fillRect(-18, 2 + (ph ? -3 : 3), 6, 2); g.fillRect(12, 2 + (ph ? 3 : -3), 6, 2);
     // hood and mask
     g.fillStyle = o.hair; g.beginPath(); g.arc(0, -13, 10, 0, 6.283); g.fill();
+    if (maskOK()) { g.drawImage(MASK, -6.2, -27, 12.4, 15.8); return; }
     g.fillStyle = '#f4efe4'; g.beginPath(); g.ellipse(0, -19.5, 6, 6.5, 0, 0, 6.283); g.fill();
     g.fillStyle = '#e0453f'; g.fillRect(-4.6, -19, 2, 1.8); g.fillRect(2.6, -19, 2, 1.8);
     g.fillStyle = '#111'; g.fillRect(-3.6, -22, 2.6, 1); g.fillRect(1, -22, 2.6, 1);
@@ -1542,6 +1546,7 @@
     g.fillStyle = o.hair;
     g.beginPath(); g.moveTo(-13, -4); g.quadraticCurveTo(-14, -26, 0, -27); g.quadraticCurveTo(14, -26, 13, -4); g.quadraticCurveTo(0, 1, -13, -4); g.fill();
     // mask face
+    if (maskOK()) { g.drawImage(MASK, -8.4, -23.6, 16.8, 21.4); return; }
     g.fillStyle = '#f4efe4'; g.beginPath(); g.ellipse(0, -13, 7.6, 9.6, 0, 0, 6.283); g.fill();
     g.fillStyle = '#e0453f'; g.beginPath(); g.arc(-4.6, -9.5, 1.8, 0, 6.283); g.arc(4.6, -9.5, 1.8, 0, 6.283); g.fill();
     g.strokeStyle = '#111'; g.lineWidth = 1; g.lineCap = 'round';
