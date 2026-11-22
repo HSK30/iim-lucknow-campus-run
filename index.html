@@ -1,9 +1,9 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Campus</title>
-<meta name="description" content="Campus: run the IIM Lucknow campus loop, grab snacks, dodge the professors.">
-<meta property="og:title" content="Campus">
+<title>Campus Sprint</title>
+<meta name="description" content="Campus Sprint: run the IIM Lucknow campus loop, grab snacks, dodge the professors.">
+<meta property="og:title" content="Campus Sprint">
 <meta property="og:description" content="Run the IIM Lucknow campus loop, grab snacks, dodge the professors. Can you beat my score?">
 <meta name="theme-color" content="#1d0a36">
 </head><body>
@@ -94,7 +94,7 @@
   @keyframes slideB { to { background-position-x: -80px; } }
   .tbody { position: relative; z-index: 1; width: 100%; display: flex; flex-direction: column; align-items: center; text-align: center; padding: 44px 16px 96px; }
   .tkick { background: var(--maroon); color: var(--cream); font-weight: 700; letter-spacing: .42em; font-size: 14px; padding: 5px 8px 5px 14px; border: 2px solid var(--cream); }
-  .logo { margin: 14px 0 0; font: 900 96px/.9 "Courier New", Courier, monospace; text-transform: uppercase; letter-spacing: .01em; }
+  .logo { margin: 14px 0 0; font: 900 80px/.9 "Courier New", Courier, monospace; text-transform: uppercase; letter-spacing: .01em; }
   .logo span { display: block; }
   .logo span:first-child { color: #ffd25e; text-shadow: 0 4px 0 #8b1e1e, 0 8px 0 #4a0d12, 0 16px 22px rgba(0,0,0,.55); }
   .logo span:last-child { color: #f6ecd9; text-shadow: 0 4px 0 #8b1e1e, 0 8px 0 #4a0d12, 0 16px 22px rgba(0,0,0,.55); margin-top: 6px; }
@@ -131,7 +131,7 @@
     <div class="troad"></div>
     <div class="tbody">
       <div class="tkick">IIM LUCKNOW</div>
-      <h1 class="logo"><span>Campus</span></h1>
+      <h1 class="logo"><span>Campus</span><span>Sprint</span></h1>
       <canvas id="hero" width="480" height="380"></canvas>
       <p class="tline">Sprint the 200 acres. Dodge the profs. Grab every snack.</p>
       <button id="titlePlay" class="tplay" type="button">Play</button>
@@ -143,7 +143,7 @@
   <div id="menu" class="overlay hidden">
     <div class="card">
       <div class="tag">IIM LUCKNOW</div>
-      <h1>Campus</h1>
+      <h1>Campus Sprint</h1>
       <label class="lbl" for="nameIn">Your name</label>
       <input id="nameIn" type="text" maxlength="14" autocomplete="off" spellcheck="false" autocapitalize="words">
       <div class="warn" id="nameWarn"></div>
@@ -647,7 +647,7 @@
       g.fillText(str, x, y, w || 960);
     };
     t('IIM LUCKNOW', 540, 160, 40, '#f6ecd9');
-    t('CAMPUS', 540, 270, 110, '#ffd25e', 'center', 660);
+    t('CAMPUS SPRINT', 540, 260, 84, '#ffd25e', 'center', 680);
     const o = OUTFITS[outfitIdx];
     g.save(); g.translate(130, 240); g.scale(4.2, 4.2); drawFront(g, o, 0); g.restore();
     g.save(); g.translate(950, 240); g.scale(-4.2, 4.2); drawFront(g, o, 1); g.restore();
@@ -665,16 +665,16 @@
       t(st[0], x + 30, 975, 24, '#6b5a4e', 'center', 220);
     });
     t('Can you beat me?', 540, 1190, 60, '#f6ecd9');
-    t(location.host || 'campus', 540, 1260, 40, '#ffd25e');
+    t(location.host || 'campus sprint', 540, 1260, 40, '#ffd25e');
     return c;
   }
   const toBlob = c => new Promise(r => c.toBlob(r, 'image/png'));
   function shareText() {
-    return 'I scored ' + lastRun.score + ' on Campus (' + lastRun.rank + ', ' + fmtSecs(lastRun.secs) + '). Can you beat me? ' + location.origin;
+    return 'I scored ' + lastRun.score + ' on Campus Sprint (' + lastRun.rank + ', ' + fmtSecs(lastRun.secs) + '). Can you beat me? ' + location.origin;
   }
   function downloadBlob(blob) {
     const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob); a.download = 'campus-score.png';
+    a.href = URL.createObjectURL(blob); a.download = 'campus-sprint-score.png';
     document.body.appendChild(a); a.click(); a.remove();
   }
   $('saveBtn').addEventListener('click', async () => {
@@ -686,7 +686,7 @@
     if (!lastRun) return;
     const msg = $('shareMsg'); msg.textContent = '';
     const blob = await toBlob(drawShareCard());
-    const file = new File([blob], 'campus-score.png', { type: 'image/png' });
+    const file = new File([blob], 'campus-sprint-score.png', { type: 'image/png' });
     try {
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
         await navigator.share({ files: [file], text: shareText() });
