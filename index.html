@@ -805,7 +805,7 @@
   function startGame() {
     reset();
     banner = { text: playerName, pre: "LET'S RUN", t: 2.2 };
-    if (isTouch) toast('Hold left / right to steer. Swipe up to jump', '#ffd25e');
+    if (isTouch) { toast('Hold left or right to steer', '#ffd25e'); toast('Swipe up to jump', '#ffd25e'); }
     state = 'play';
     document.getElementById('title').classList.add('hidden');
     document.getElementById('menu').classList.add('hidden');
