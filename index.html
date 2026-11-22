@@ -701,6 +701,8 @@
     finally { clearTimeout(to); }
   }
 
+  api('ping');                                   // wakes the server while the player is still typing their name
+
   async function submitRun() {
     const note = $('saveNote');
     note.textContent = '';

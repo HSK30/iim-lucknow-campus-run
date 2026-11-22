@@ -104,6 +104,7 @@ module.exports = async (req, res) => {
     if (typeof body === 'string') { try { body = JSON.parse(body); } catch (e) { body = {}; } }
     body = body || {};
 
+    if (action === 'ping') return send(200, { ok: true });
     if (!process.env.BLOB_READ_WRITE_TOKEN) return send(503, { error: 'storage_not_connected' });
 
     // ---- claim a player name ----
@@ -114,21 +115,22 @@ module.exports = async (req, res) => {
       if (!validPid(pid)) return send(400, { error: 'bad_pid' });
       const slug = slugOf(name);
       const mine = `n/${slug}~${pid}`;
+      // 1 round trip: is the name already claimed by someone else?
       const existing = await listAll(`n/${slug}~`);
       if (existing.length && !existing.some(b => b.pathname === mine)) return send(409, { error: 'name_taken' });
+      // 2 writes in parallel: claim the name and register the player
+      const b64 = Buffer.from(name, 'utf8').toString('base64url');
+      if (existing.length) return send(200, { pid, name });   // this player already holds the name: nothing to write
+      await Promise.all([putText(mine, '1'), putText(`p/${pid}~${b64}~${Date.now()}`, '1')]);
+      // 1 round trip: if two people claimed the same name at once, the earliest claim wins
       if (!existing.length) {
-        await putText(mine, '1');
         const again = (await listAll(`n/${slug}~`)).sort((a, b) => new Date(a.uploadedAt) - new Date(b.uploadedAt) || a.pathname.localeCompare(b.pathname));
         if (again.length && again[0].pathname !== mine) {
           const { del } = await blobLib();
-          await del(again.find(b => b.pathname === mine).url).catch(() => {});
+          const lost = again.find(b => b.pathname === mine);
+          await Promise.all([lost ? del(lost.url).catch(() => {}) : null, listAll(`p/${pid}~`).then(l => Promise.all(l.map(x => del(x.url).catch(() => {}))))]).catch(() => {});
           return send(409, { error: 'name_taken' });
         }
-      }
-      const known = await listAll(`p/${pid}~`);
-      const b64 = Buffer.from(name, 'utf8').toString('base64url');
-      if (!known.some(b => b.pathname.split('~')[1] === b64)) {
-        await putText(`p/${pid}~${b64}~${Date.now()}`, '1');
       }
       return send(200, { pid, name });
     }
