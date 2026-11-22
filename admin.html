@@ -61,7 +61,7 @@
   <div id="app" hidden>
     <div class="top">
       <h1>Campus Sprint <span>Admin</span></h1>
-      <div class="meta"><span id="liveDot" class="live">LIVE</span> | updated <span id="updated">never</span> | <button class="ghost" id="refresh" type="button">Refresh</button> <button class="ghost" id="logout" type="button">Log out</button></div>
+      <div class="meta"><span id="liveDot" class="live">LIVE</span> | updated <span id="updated">never</span> | <button class="ghost" id="refresh" type="button">Refresh</button> <button class="ghost" id="logout" type="button">Log out</button> <button class="ghost" id="wipe" type="button">Delete all data</button></div>
     </div>
 
     <div class="tiles" id="tiles"></div>
@@ -165,6 +165,16 @@
     }
   });
   $('refresh').addEventListener('click', () => load(false));
+  $('wipe').addEventListener('click', async () => {
+    if (!confirm('Permanently delete ALL players, names and scores? This cannot be undone.')) return;
+    if (prompt('Type DELETE ALL to confirm') !== 'DELETE ALL') return;
+    try {
+      const r = await fetch('/api?a=wipe', { method: 'POST', headers: { 'x-admin-key': key, 'Content-Type': 'application/json' }, body: JSON.stringify({ confirm: 'DELETE ALL' }) });
+      const j = await r.json().catch(() => ({}));
+      alert(r.ok ? 'Done. Removed ' + j.removed + ' records.' : 'Failed: ' + (j.error || r.status));
+    } catch (e) { alert('Could not reach the server.'); }
+    load(false);
+  });
   $('logout').addEventListener('click', logout);
   $('csv').addEventListener('click', csv);
   $('q').addEventListener('input', render);

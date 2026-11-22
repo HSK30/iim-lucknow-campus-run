@@ -177,6 +177,23 @@ module.exports = async (req, res) => {
       });
     }
 
+    // ---- admin: wipe every player, name claim and run (needs the admin key and an explicit confirmation) ----
+    if (req.method === 'POST' && action === 'wipe') {
+      const ok = adminOk(req);
+      if (ok === null) return send(503, { error: 'admin_password_not_set' });
+      if (!ok) { await new Promise(r => setTimeout(r, 500)); return send(401, { error: 'wrong_password' }); }
+      if (body.confirm !== 'DELETE ALL') return send(400, { error: 'confirm_required' });
+      const { del } = await blobLib();
+      let removed = 0;
+      for (const prefix of ['s/', 'p/', 'n/']) {
+        const items = await listAll(prefix);
+        for (let i = 0; i < items.length; i += 50) {
+          await Promise.all(items.slice(i, i + 50).map(x => del(x.url).then(() => { removed++; }).catch(() => {})));
+        }
+      }
+      return send(200, { ok: true, removed });
+    }
+
     return send(404, { error: 'not_found' });
   } catch (e) {
     console.error(e);
