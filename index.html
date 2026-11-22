@@ -134,6 +134,7 @@
   .htile svg { width: 38px; height: 38px; fill: #ffd25e; display: block; margin: 0 auto 4px; }
   .htile small { display: block; font-size: 14px; font-weight: 700; letter-spacing: 0; opacity: .85; margin-top: 2px; }
   .hjump { margin-top: 8px; background: #ffd25e; color: #2a1a14; border: 3px solid #2a1a14; padding: 9px 6px; font-weight: 900; font-size: 21px; letter-spacing: .08em; box-shadow: 4px 4px 0 #8b1e1e; }
+  .hjump small { display: block; font-size: 14px; font-weight: 700; letter-spacing: 0; margin-top: 2px; }
   .hkeys { margin-top: 8px; color: #f6ecd9; font-size: 13px; opacity: .75; }
   @media (hover: none) { .hkeys { display: none; } }
   .tbody { height: 100%; justify-content: space-evenly; padding-top: calc(30px + var(--safe, 0px)); padding-bottom: 104px; }
@@ -175,10 +176,10 @@
       <canvas id="hero" width="480" height="380"></canvas>
       <div class="how">
         <div class="hrow">
-          <div class="htile"><svg viewBox="0 0 24 24"><polygon points="16,3 6,12 16,21"/></svg>TAP LEFT<small>to turn left</small></div>
-          <div class="htile"><svg viewBox="0 0 24 24"><polygon points="8,3 18,12 8,21"/></svg>TAP RIGHT<small>to turn right</small></div>
+          <div class="htile"><svg viewBox="0 0 24 24"><polygon points="16,3 6,12 16,21"/></svg>HOLD LEFT<small>to turn left</small></div>
+          <div class="htile"><svg viewBox="0 0 24 24"><polygon points="8,3 18,12 8,21"/></svg>HOLD RIGHT<small>to turn right</small></div>
         </div>
-        <div class="hjump">DOUBLE TAP = JUMP</div>
+        <div class="hjump">SWIPE UP = JUMP<small>jumps straight up, no turning</small></div>
         <div class="hkeys">Keyboard: arrow keys to steer, Space to jump</div>
       </div>
       <button id="titlePlay" class="tplay" type="button">Play</button>
@@ -197,7 +198,7 @@
       <div class="lbl">Cloak: <b id="outfitName"></b></div>
       <div class="outfits" id="outfits"></div>
       <ul class="legend">
-        <li><b>Tap and hold</b> the left or right side of the screen to steer. <b>Double tap</b> to jump over potholes.</li>
+        <li><b>Tap and hold</b> the left or right side of the screen to steer. <b>Swipe up</b> to jump over potholes (no turning while you swipe).</li>
         <li><b>Avoid</b> trees, the fence and professors.</li>
         <li><b>Collect</b> snacks for points. Red Bull = speed, offer letter = shield.</li>
         <li><b>Careful:</b> parties and case studies mess you up.</li>
@@ -205,7 +206,7 @@
       </ul>
       <div class="stat" id="bestMenu"></div>
       <button id="playBtn">Start Running</button><br><button id="menuBack" class="ghost" type="button">Back</button>
-      <div class="hint">Touch: tap and hold left or right to steer, double tap to jump<br>Keys: Left / Right to steer, Up or Space to jump, M for sound</div>
+      <div class="hint">Touch: hold left or right to steer, swipe up to jump<br>Keys: Left / Right to steer, Up or Space to jump, M for sound</div>
     </div>
   </div>
 
@@ -800,7 +801,7 @@
   function startGame() {
     reset();
     banner = { text: playerName, pre: "LET'S RUN", t: 2.2 };
-    if (isTouch) toast('Tap left / right to steer. Double tap to jump', '#ffd25e');
+    if (isTouch) toast('Hold left / right to steer. Swipe up to jump', '#ffd25e');
     state = 'play';
     document.getElementById('title').classList.add('hidden');
     document.getElementById('menu').classList.add('hidden');
@@ -923,20 +924,20 @@
   });
 
   const isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints || 0) > 0;
-  let lastTap = 0;
   canvas.addEventListener('pointerdown', e => {
     if (state === 'pause') { state = 'play'; return; }
     try { canvas.setPointerCapture(e.pointerId); } catch (err) {}
     const r = stage.getBoundingClientRect();
     const rel = (e.clientX - r.left) / r.width;
     const reg = rel < 0.5 ? -1 : 1;                 // left half steers left, right half steers right
-    ptr.set(e.pointerId, { reg, y: e.clientY, jumped: false });
-    const tn = performance.now();
-    if (tn - lastTap < 340) { lastTap = 0; jump(); } else lastTap = tn;     // double tap anywhere to jump
+    ptr.set(e.pointerId, { reg, x: e.clientX, y: e.clientY, jumped: false });
   });
   canvas.addEventListener('pointermove', e => {
     const p = ptr.get(e.pointerId);
-    if (p && !p.jumped && p.y - e.clientY > 40) { p.jumped = true; jump(); }   // swipe up to jump
+    if (!p) return;
+    const dy = p.y - e.clientY, dx = Math.abs(e.clientX - p.x);
+    if (dy > 14 && dy > dx * 0.8) p.reg = 0;                       // an upward swipe has started: this finger stops steering
+    if (!p.jumped && dy > 45 && dy > dx * 0.8) { p.jumped = true; p.reg = 0; jump(); }   // a short swipe up makes the runner jump
   });
   ['pointerup', 'pointercancel'].forEach(t => canvas.addEventListener(t, e => ptr.delete(e.pointerId)));
 
