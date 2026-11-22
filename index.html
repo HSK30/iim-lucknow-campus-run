@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>IIM Lucknow Campus Run</title>
+<meta name="description" content="A running game around the IIM Lucknow campus. Sign up, set a score and climb the leaderboard.">
+<meta property="og:title" content="IIM Lucknow Campus Run">
+<meta property="og:description" content="Run the campus loop, grab snacks, dodge professors. Can you top the leaderboard?">
 <style>
   :root { --maroon:#8b1e1e; --brick:#b5502f; --gold:#ffd25e; --cream:#f6ecd9; --ink:#2a1a14; }
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -35,6 +38,32 @@
     box-shadow: 4px 4px 0 var(--ink); cursor: pointer; }
   button:active { transform: translate(3px, 3px); box-shadow: 1px 1px 0 var(--ink); }
   .hint { font-size: 14px; margin-top: 12px; opacity: .8; line-height: 1.45; }
+
+  input[type=text] { width: 100%; font: 700 22px "Courier New", monospace; padding: 12px 14px; border: 4px solid var(--ink);
+    background: #fffaf0; color: var(--ink); text-align: center; margin: 10px 0 4px; }
+  input[type=text]:focus-visible, button:focus-visible { outline: 4px solid var(--gold); outline-offset: 2px; }
+  .err { color: #b01e1e; font-weight: 700; min-height: 1.5em; font-size: 15px; margin-bottom: 4px; }
+  .who { font-size: 17px; font-weight: 700; color: var(--maroon); margin: 2px 0 6px; }
+  .linkbtn { background: none; border: 0; box-shadow: none; padding: 2px 4px; margin: 0 0 0 8px; font-size: 13px; color: var(--ink);
+    text-decoration: underline; letter-spacing: 0; text-transform: none; }
+  .linkbtn:active { transform: none; box-shadow: none; }
+  .card.scroll { max-height: calc(100% - 24px); overflow-y: auto; }
+  h1.small { font-size: 32px; margin: 8px 0 6px; }
+  .stat.big { font-size: 30px; color: var(--maroon); }
+  table.lb { width: 100%; border-collapse: collapse; font-size: 15px; margin: 8px 0; text-align: left; }
+  table.lb th { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; border-bottom: 2px solid var(--ink); padding: 3px 4px; }
+  table.lb td { padding: 4px; border-bottom: 1px dashed var(--brick); }
+  table.lb .r { text-align: right; }
+  table.lb tr.you td { background: #ffe9a8; font-weight: 700; }
+  table.lb td.empty { text-align: center; padding: 14px 4px; }
+  .row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+  .row button { margin-top: 8px; padding: 11px 16px; font-size: 16px; }
+  button.alt { background: #fffaf0; color: var(--maroon); }
+  .msg { font-size: 14px; min-height: 1.3em; margin-top: 6px; }
+  #snd { position: absolute; left: 10px; bottom: 10px; z-index: 5; margin: 0; padding: 7px 10px; font-size: 12px; letter-spacing: .06em;
+    background: rgba(15,8,4,.78); color: var(--cream); border: 2px solid var(--cream); box-shadow: none; }
+  #snd:active { transform: none; }
+  [hidden] { display: none !important; }
 </style>
 </head>
 <body>
@@ -46,6 +75,7 @@
       <div class="tag">IIM LUCKNOW</div>
       <h1>Campus Run</h1>
       <p>Run laps around the campus road loop. You steer, the road does not.</p>
+      <div id="whoWrap" hidden><span class="who" id="who"></span><button class="linkbtn" id="changeName" type="button">Not you?</button><div class="msg" id="whoNote"></div></div>
       <ul class="legend">
         <li><b>Steering:</b> tap a button for a small turn, hold it for a big one. On a curve you only turn when you press</li>
         <li><b>Off the road:</b> grass slows you down, the fence ends the run</li>
@@ -54,24 +84,51 @@
         <li><b>Speed breaker:</b> -10 points. <b>Snacks:</b> +10 to +70, streaks multiply. <b>Lap:</b> +100</li>
       </ul>
       <div class="stat" id="bestMenu"></div>
-      <button id="playBtn">Start Running</button>
-      <div class="hint">Left / Right (or A / D): steer &nbsp;|&nbsp; Up / Space: jump<br>Touch: hold left or right side to steer, tap the middle to jump</div>
+      <div class="row"><button id="playBtn">Start Running</button><button id="boardBtn" class="alt" type="button">Leaderboard</button></div>
+      <div class="hint">Left / Right (or A / D): steer &nbsp;|&nbsp; Up / Space: jump<br>Touch: hold left or right side to steer, tap the middle to jump<br>M: sound on or off</div>
+    </div>
+  </div>
+
+  <div id="signup" class="overlay hidden">
+    <form class="card" id="signupForm" autocomplete="off">
+      <div class="tag">IIM LUCKNOW</div>
+      <h1>Campus Run</h1>
+      <p>Pick a player name. Your scores go on the leaderboard under this name.</p>
+      <label for="nameInput" class="note">Your name</label>
+      <input type="text" id="nameInput" maxlength="20" placeholder="e.g. Himmat" autocomplete="off" autocapitalize="words" spellcheck="false">
+      <div class="err" id="signupErr" role="alert"></div>
+      <button type="submit" id="signupBtn">Enter the campus</button>
+      <div><button type="button" class="linkbtn" id="cancelSignup">Cancel</button></div>
+    </form>
+  </div>
+
+  <div id="board" class="overlay hidden">
+    <div class="card scroll">
+      <div class="tag">LEADERBOARD</div>
+      <h1 class="small">Top Runners</h1>
+      <div class="note" id="boardMeta"></div>
+      <table class="lb" id="boardTbl"></table>
+      <button id="boardClose">Close</button>
     </div>
   </div>
 
   <div id="over" class="overlay hidden">
-    <div class="card">
+    <div class="card scroll">
       <div class="tag">RESULT</div>
-      <h1>Game Over</h1>
+      <h1 class="small">Game Over</h1>
       <div class="cause" id="cause"></div>
       <div class="rank" id="rank"></div>
       <div class="note" id="rankNote"></div>
-      <div class="stat" id="finalScore"></div>
+      <div class="stat big" id="finalScore"></div>
       <div class="stat" id="finalDetail"></div>
-      <div class="stat" id="finalBest"></div>
+      <div class="stat" id="finalPos"></div>
+      <table class="lb" id="overBoard"></table>
+      <div class="row"><button id="shareBtn" type="button">Share score</button><button id="saveBtn" class="alt" type="button">Save image</button></div>
+      <div class="msg" id="shareMsg"></div>
       <button id="againBtn">Run Again</button>
     </div>
   </div>
+  <button id="snd" type="button" aria-pressed="false">SOUND ON</button>
 </div>
 
 <script>
@@ -317,20 +374,318 @@
   function showBest() { bestMenu.textContent = best ? 'Best score: ' + best : ''; }
   showBest();
 
-  // ---------------- audio ----------------
-  let actx = null, muted = false;
-  function beep(freq, dur, type, vol) {
-    if (muted) return;
+  // ---------------- arcade sound ----------------
+  const LS_MUTE = 'iimrun-muted';
+  let actx = null, master = null, sfxBus = null, musicBus = null, noiseBuf = null, grassGain = null;
+  let muted = false;
+  try { muted = localStorage.getItem(LS_MUTE) === '1'; } catch (e) {}
+
+  function ensureAudio() {
+    if (actx) { if (actx.state === 'suspended') actx.resume(); return true; }
     try {
-      if (!actx) actx = new (window.AudioContext || window.webkitAudioContext)();
-      const o = actx.createOscillator(), g = actx.createGain();
-      o.type = type || 'square'; o.frequency.value = freq;
-      g.gain.value = vol || 0.04;
-      g.gain.exponentialRampToValueAtTime(0.0001, actx.currentTime + dur);
-      o.connect(g); g.connect(actx.destination);
-      o.start(); o.stop(actx.currentTime + dur);
-    } catch (e) {}
+      actx = new (window.AudioContext || window.webkitAudioContext)();
+      master = actx.createGain(); master.gain.value = muted ? 0 : 0.9; master.connect(actx.destination);
+      sfxBus = actx.createGain(); sfxBus.gain.value = 1; sfxBus.connect(master);
+      musicBus = actx.createGain(); musicBus.gain.value = 0.55; musicBus.connect(master);
+      noiseBuf = actx.createBuffer(1, actx.sampleRate, actx.sampleRate);
+      const d = noiseBuf.getChannelData(0);
+      for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+      // dirt rumble while driving on the grass
+      const src = actx.createBufferSource(); src.buffer = noiseBuf; src.loop = true;
+      const lp = actx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 380;
+      grassGain = actx.createGain(); grassGain.gain.value = 0;
+      src.connect(lp); lp.connect(grassGain); grassGain.connect(sfxBus); src.start();
+      return true;
+    } catch (e) { actx = null; return false; }
   }
+
+  // one oscillator note: slides from f0 to f1, fades out over dur
+  function tone(f0, f1, dur, type, vol, delay, bus) {
+    if (!actx || muted) return;
+    const t = actx.currentTime + (delay || 0);
+    const o = actx.createOscillator(), g = actx.createGain();
+    o.type = type || 'square';
+    o.frequency.setValueAtTime(f0, t);
+    if (f1 && f1 !== f0) o.frequency.exponentialRampToValueAtTime(Math.max(20, f1), t + dur);
+    g.gain.setValueAtTime(vol, t);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g); g.connect(bus || sfxBus);
+    o.start(t); o.stop(t + dur + 0.03);
+  }
+  // burst of filtered noise (crashes, thuds, hi-hats)
+  function noise(dur, vol, freq, kind, delay, bus) {
+    if (!actx || muted) return;
+    const t = actx.currentTime + (delay || 0);
+    const s = actx.createBufferSource(); s.buffer = noiseBuf;
+    const f = actx.createBiquadFilter(); f.type = kind || 'highpass'; f.frequency.value = freq || 1000;
+    const g = actx.createGain();
+    g.gain.setValueAtTime(vol, t);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    s.connect(f); f.connect(g); g.connect(bus || sfxBus);
+    s.start(t, Math.random() * 0.5); s.stop(t + dur + 0.03);
+  }
+  const arp = (notes, step, type, vol, gap) => notes.forEach((n, i) => tone(n, n, gap || step * 1.6, type, vol, i * step));
+
+  const sfx = {
+    click()     { tone(880, 1320, 0.05, 'square', 0.05); },
+    start()     { arp([523, 659, 784, 1047, 1319], 0.07, 'square', 0.06); tone(1047, 1047, 0.3, 'triangle', 0.06, 0.38); },
+    jump()      { tone(240, 760, 0.14, 'square', 0.05); },
+    land()      { tone(150, 55, 0.08, 'triangle', 0.08); noise(0.05, 0.04, 1500, 'highpass'); },
+    coin(pts)   {
+      tone(988, 988, 0.07, 'square', 0.06); tone(1319, 1319, 0.2, 'square', 0.06, 0.07);
+      if (pts >= 40) { tone(1568, 1568, 0.08, 'square', 0.05, 0.16); tone(2093, 2093, 0.25, 'square', 0.05, 0.24); }
+      if (pts >= 60) { arp([1319, 1568, 2093, 2637], 0.05, 'triangle', 0.04); }
+    },
+    breaker()   { tone(150, 45, 0.3, 'triangle', 0.16); noise(0.18, 0.08, 500, 'lowpass'); tone(220, 90, 0.12, 'square', 0.04, 0.05); },
+    party()     { [620, 540, 470, 400, 330, 260].forEach((f, i) => tone(f, f * 0.8, 0.12, 'sawtooth', 0.05, i * 0.09)); },
+    caseStudy() { tone(330, 660, 0.09, 'square', 0.05); tone(660, 990, 0.09, 'square', 0.05, 0.1); tone(990, 440, 0.18, 'square', 0.05, 0.2); },
+    offer()     { arp([523, 659, 784, 1047, 1319, 1568, 2093], 0.055, 'square', 0.05); tone(2093, 2093, 0.5, 'triangle', 0.05, 0.4); },
+    smash()     { noise(0.22, 0.12, 700, 'bandpass'); tone(220, 60, 0.15, 'square', 0.06); },
+    landmark()  { tone(880, 880, 0.1, 'triangle', 0.06); tone(1175, 1175, 0.22, 'triangle', 0.06, 0.1); },
+    lap()       { arp([523, 659, 784, 1047, 784, 1047, 1319], 0.1, 'square', 0.06, 0.16); tone(1319, 1319, 0.5, 'triangle', 0.06, 0.7); },
+    die()       { noise(0.45, 0.18, 900, 'bandpass'); tone(520, 38, 0.95, 'sawtooth', 0.11); tone(260, 30, 1.0, 'square', 0.06, 0.1); },
+    over()      { [392, 370, 349, 330].forEach((f, i) => tone(f, f * 0.97, 0.28, 'triangle', 0.08, 0.15 + i * 0.3)); tone(247, 165, 0.9, 'triangle', 0.09, 1.4); },
+    highscore() { arp([523, 659, 784, 1047, 1319, 1047, 1319, 1568], 0.09, 'square', 0.06, 0.14); tone(2093, 2093, 0.6, 'triangle', 0.06, 0.8); }
+  };
+
+  // chiptune loop: bass, arpeggio lead, kick and hi-hat. It speeds up as the runner speeds up.
+  const CHORDS = [[220, 261.6, 329.6, 440], [174.6, 220, 261.6, 349.2], [261.6, 329.6, 392, 523.3], [196, 246.9, 293.7, 392]];
+  const ROOTS = [55, 43.65, 65.4, 49];
+  const LEAD = [0, 1, 2, 1, 2, 3, 2, 1];
+  const music = {
+    on: false, step: 0, next: 0, bpm: 128, timer: null,
+    start() {
+      if (!actx) return;
+      this.on = true; this.step = 0; this.next = actx.currentTime + 0.1;
+      if (!this.timer) this.timer = setInterval(() => this.tick(), 30);
+    },
+    stop() { this.on = false; },
+    setSpeed(sp) { this.bpm = 122 + Math.max(0, Math.min(1, (sp - CFG.startSpeed) / (CFG.maxSpeed - CFG.startSpeed))) * 56; },
+    tick() {
+      if (!actx) return;
+      const playing = state === 'play';
+      if (grassGain) grassGain.gain.setTargetAtTime(playing && onGrass && !muted ? 0.09 : 0, actx.currentTime, 0.05);
+      if (!this.on || !playing) { this.next = actx.currentTime + 0.08; return; }
+      const dur = 60 / this.bpm / 2;
+      while (this.next < actx.currentTime + 0.12) {
+        this.play(this.step, this.next - actx.currentTime, dur);
+        this.next += dur; this.step = (this.step + 1) % 32;
+      }
+    },
+    play(i, delay, dur) {
+      const bar = (i >> 3) & 3, n = i & 7, ch = CHORDS[bar], r = ROOTS[bar];
+      const bass = [1, 1, 2, 1, 1, 2, 1, 1.5][n] * r;
+      tone(bass, bass, dur * 0.9, 'triangle', 0.14, delay, musicBus);
+      tone(ch[LEAD[n]], ch[LEAD[n]], dur * 0.75, 'square', 0.045, delay, musicBus);
+      if (n === 0 || n === 4) tone(160, 42, 0.12, 'sine', 0.22, delay, musicBus);
+      if (n % 2 === 1) noise(0.035, 0.05, 7000, 'highpass', delay, musicBus);
+      if (n === 4 && bar % 2 === 1) noise(0.09, 0.07, 1800, 'bandpass', delay, musicBus);
+    }
+  };
+
+  function applyMute() {
+    if (master) master.gain.value = muted ? 0 : 0.9;
+    const b = document.getElementById('snd');
+    if (b) { b.textContent = muted ? 'SOUND OFF' : 'SOUND ON'; b.setAttribute('aria-pressed', muted ? 'true' : 'false'); }
+  }
+  function toggleMute() {
+    muted = !muted;
+    try { localStorage.setItem(LS_MUTE, muted ? '1' : '0'); } catch (e) {}
+    ensureAudio(); applyMute();
+  }
+  document.getElementById('snd').addEventListener('click', e => { e.stopPropagation(); toggleMute(); });
+  document.addEventListener('pointerdown', () => ensureAudio());
+  document.addEventListener('click', e => { if (e.target.closest && e.target.closest('button') && e.target.id !== 'snd') sfx.click(); });
+  applyMute();
+
+  // ---------------- player sign-up, online scores, sharing ----------------
+  const $ = id => document.getElementById(id);
+  const LS_PLAYER = 'iimrun-player';
+  const RANK_NAMES = ['Waitlisted', 'Summer Intern', 'Club Convener', "Dean's List", 'Final Placement Offer', 'Gold Medalist'];
+  let player = null, lastRun = null;
+  try { player = JSON.parse(localStorage.getItem(LS_PLAYER) || 'null'); } catch (e) {}
+  if (!player || !player.pid || !player.name) player = null;
+  const savePlayer = () => { try { localStorage.setItem(LS_PLAYER, JSON.stringify(player)); } catch (e) {} };
+
+  function newPid() {
+    const a = new Uint8Array(12);
+    if (window.crypto && crypto.getRandomValues) crypto.getRandomValues(a);
+    else for (let i = 0; i < 12; i++) a[i] = Math.floor(Math.random() * 256);
+    return Array.from(a, b => (b % 36).toString(36)).join('');
+  }
+  const fmtSecs = s => { s = Math.round(s); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };
+
+  async function api(action, opts) {
+    opts = opts || {};
+    const ctl = new AbortController(), to = setTimeout(() => ctl.abort(), 9000);
+    try {
+      const r = await fetch('/api?a=' + action, {
+        method: opts.body ? 'POST' : 'GET',
+        headers: opts.body ? { 'Content-Type': 'application/json' } : {},
+        body: opts.body ? JSON.stringify(opts.body) : undefined,
+        signal: ctl.signal, cache: 'no-store'
+      });
+      let j = null; try { j = await r.json(); } catch (e) {}
+      return { ok: r.ok, status: r.status, data: j };
+    } catch (e) { return { ok: false, status: 0, data: null }; }
+    finally { clearTimeout(to); }
+  }
+
+  function updateWho() {
+    $('who').textContent = player ? 'Playing as ' + player.name : '';
+    $('whoWrap').hidden = !player;
+  }
+  function showSignup() {
+    $('signup').classList.remove('hidden');
+    $('signupErr').textContent = '';
+    $('nameInput').value = player ? player.name : '';
+    setTimeout(() => { try { $('nameInput').focus(); } catch (e) {} }, 50);
+  }
+
+  $('signupForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    ensureAudio();
+    const name = $('nameInput').value.trim().replace(/\s+/g, ' ');
+    const err = $('signupErr');
+    if (!/^[A-Za-z0-9 ._'-]{2,20}$/.test(name)) { err.textContent = 'Use 2 to 20 letters or numbers.'; return; }
+    const btn = $('signupBtn'); btn.disabled = true; btn.textContent = 'Checking...';
+    const pid = newPid();
+    const r = await api('join', { body: { name, pid } });
+    btn.disabled = false; btn.textContent = 'Enter the campus';
+    if (r.status === 409) { err.textContent = 'That name is taken. Add your batch or initials.'; return; }
+    if (r.status === 400) { err.textContent = 'Please pick a different name.'; return; }
+    player = { pid, name, offline: !r.ok };
+    savePlayer();
+    $('signup').classList.add('hidden');
+    updateWho();
+    sfx.start();
+    if (!r.ok) toastOffline();
+  });
+  function toastOffline() { $('whoNote').textContent = 'Offline: scores will not be saved until the connection is back.'; }
+  $('changeName').addEventListener('click', () => { showSignup(); });
+  $('cancelSignup').addEventListener('click', () => { if (player) $('signup').classList.add('hidden'); });
+
+  // ----- leaderboard rendering -----
+  function renderBoard(tbl, rows, limit) {
+    tbl.textContent = '';
+    if (!rows || !rows.length) {
+      const tr = tbl.insertRow(), td = tr.insertCell(); td.colSpan = 4; td.textContent = 'No scores yet. Be the first!'; td.className = 'empty';
+      return;
+    }
+    const head = tbl.insertRow();
+    ['#', 'Player', 'Score', 'Time'].forEach((h, i) => { const th = document.createElement('th'); th.textContent = h; if (i > 1) th.className = 'r'; head.appendChild(th); });
+    rows.slice(0, limit).forEach((p, i) => {
+      const tr = tbl.insertRow(); if (p.you) tr.className = 'you';
+      [i + 1, p.name, p.score, fmtSecs(p.secs)].forEach((v, k) => { const td = tr.insertCell(); td.textContent = v; if (k > 1) td.className = 'r'; });
+    });
+  }
+
+  async function openBoard() {
+    $('board').classList.remove('hidden');
+    $('boardTbl').textContent = '';
+    $('boardMeta').textContent = 'Loading...';
+    const r = await api('board');
+    if (r.ok) {
+      $('boardMeta').textContent = r.data.players + ' players, ' + r.data.runs + ' runs';
+      renderBoard($('boardTbl'), r.data.top.map(p => Object.assign({}, p, { you: player && p.name === player.name })), 15);
+    } else {
+      $('boardMeta').textContent = 'Leaderboard is not reachable right now.';
+    }
+  }
+  $('boardBtn').addEventListener('click', openBoard);
+  $('boardClose').addEventListener('click', () => $('board').classList.add('hidden'));
+
+  // ----- saving a finished run -----
+  async function submitRun() {
+    const pos = $('finalPos');
+    $('overBoard').textContent = '';
+    if (!player) { pos.textContent = ''; return; }
+    pos.textContent = 'Saving your score...';
+    const body = Object.assign({ pid: player.pid, rankIdx: Math.max(0, RANK_NAMES.indexOf(lastRun.rank)) }, lastRun);
+    let r = await api('score', { body });
+    if (r.status === 403) {                       // signed up while offline: register now, then retry
+      const j = await api('join', { body: { name: player.name, pid: player.pid } });
+      if (j.ok) r = await api('score', { body });
+    }
+    if (r.ok) {
+      player.offline = false; savePlayer();
+      lastRun.pos = r.data.pos; lastRun.players = r.data.players;
+      pos.textContent = 'You are #' + r.data.pos + ' of ' + r.data.players + (r.data.players === 1 ? ' player' : ' players');
+      renderBoard($('overBoard'), r.data.top, 5);
+      if (r.data.newBest) { sfx.highscore(); pos.textContent += ' (new personal best!)'; }
+    } else {
+      pos.textContent = 'Could not save this score. Check your connection.';
+    }
+  }
+
+  // ----- share card -----
+  function drawShareCard() {
+    const c = document.createElement('canvas'); c.width = 1080; c.height = 1350;
+    const g = c.getContext('2d');
+    const grd = g.createLinearGradient(0, 0, 0, 1350);
+    grd.addColorStop(0, '#2a0f10'); grd.addColorStop(1, '#14110f');
+    g.fillStyle = grd; g.fillRect(0, 0, 1080, 1350);
+    // campus road motif
+    g.strokeStyle = 'rgba(246,236,217,.08)'; g.lineWidth = 120; g.lineCap = 'round';
+    g.beginPath(); g.moveTo(-60, 1100); g.bezierCurveTo(300, 900, 200, 500, 560, 450); g.bezierCurveTo(900, 400, 800, 150, 1140, 120); g.stroke();
+    g.strokeStyle = 'rgba(216,48,47,.22)'; g.lineWidth = 8; g.setLineDash([40, 40]); g.stroke(); g.setLineDash([]);
+    // checker strip
+    for (let i = 0; i < 27; i++) for (let j = 0; j < 2; j++) { g.fillStyle = (i + j) % 2 ? '#f6ecd9' : '#14110f'; g.fillRect(i * 40, j * 40, 40, 40); }
+    const t = (s, x, y, size, col, align, w) => {
+      g.font = '700 ' + size + 'px "Courier New", monospace'; g.textAlign = align || 'center'; g.fillStyle = col;
+      g.fillText(s, x, y, w || 960);
+    };
+    t('IIM LUCKNOW', 540, 170, 44, '#f6ecd9');
+    t('CAMPUS RUN', 540, 260, 100, '#ffd25e');
+    // panel
+    g.fillStyle = '#f6ecd9'; g.fillRect(90, 330, 900, 760);
+    g.lineWidth = 12; g.strokeStyle = '#b5502f'; g.strokeRect(90, 330, 900, 760);
+    t(lastRun.name || 'Runner', 540, 440, 64, '#8b1e1e', 'center', 820);
+    t('SCORE', 540, 520, 34, '#6b5a4e');
+    t(String(lastRun.score), 540, 660, 150, '#2a1a14');
+    g.fillStyle = '#8b1e1e'; g.fillRect(170, 705, 740, 100);
+    t(lastRun.rank.toUpperCase(), 540, 775, 56, '#f6ecd9', 'center', 700);
+    const stats = [['TIME', fmtSecs(lastRun.secs)], ['DISTANCE', lastRun.dist + ' m'], ['SNACKS', String(lastRun.snacks)], ['LAPS', String(lastRun.lap)]];
+    stats.forEach((s, i) => {
+      const x = 180 + i * 240;
+      t(s[1], x + 30, 905, 46, '#2a1a14', 'center', 220);
+      t(s[0], x + 30, 950, 24, '#6b5a4e', 'center', 220);
+    });
+    if (lastRun.pos) t('#' + lastRun.pos + ' of ' + lastRun.players + ' players on the leaderboard', 540, 1040, 32, '#8b1e1e', 'center', 840);
+    t('Can you beat me?', 540, 1180, 56, '#f6ecd9');
+    t(location.host || 'campus run', 540, 1250, 40, '#ffd25e');
+    return c;
+  }
+  const toBlob = c => new Promise(r => c.toBlob(r, 'image/png'));
+  function shareText() {
+    return 'I scored ' + lastRun.score + ' on IIM Lucknow Campus Run (' + lastRun.rank + ', ' + fmtSecs(lastRun.secs) + '). Can you beat me? ' + location.origin;
+  }
+  function downloadBlob(blob) {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob); a.download = 'campus-run-score.png';
+    document.body.appendChild(a); a.click(); a.remove();
+  }
+  $('saveBtn').addEventListener('click', async () => {
+    if (!lastRun) return;
+    downloadBlob(await toBlob(drawShareCard()));
+    $('shareMsg').textContent = 'Image saved.';
+  });
+  $('shareBtn').addEventListener('click', async () => {
+    if (!lastRun) return;
+    const msg = $('shareMsg'); msg.textContent = '';
+    const blob = await toBlob(drawShareCard());
+    const file = new File([blob], 'campus-run-score.png', { type: 'image/png' });
+    try {
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({ files: [file], text: shareText() });
+        return;
+      }
+      if (navigator.share) { await navigator.share({ text: shareText() }); return; }
+    } catch (e) { if (e && e.name === 'AbortError') return; }
+    downloadBlob(blob);
+    try { await navigator.clipboard.writeText(shareText()); msg.textContent = 'Image saved and message copied. Paste it with the image.'; }
+    catch (e) { msg.textContent = 'Image saved. Send it to your friends with ' + location.origin; }
+  });
 
   // ---------------- game state ----------------
   let state = 'menu';
@@ -364,12 +719,15 @@
   }
 
   function startGame() {
+    ensureAudio();
+    if (!player) { showSignup(); return; }
+    $('board').classList.add('hidden');
     reset();
     banner = { text: "LET'S RUN", t: 2.2, enter: false };
     state = 'play';
     document.getElementById('menu').classList.add('hidden');
     document.getElementById('over').classList.add('hidden');
-    beep(520, .12, 'triangle', .06);
+    ensureAudio(); sfx.start(); music.start();
   }
 
   function rankFor(s) {
@@ -385,23 +743,26 @@
     state = 'dying'; cause = msg; deathT = 1.3; shake = 0.6;
     burst(px, py, '#ff5e7e', 36, 320);
     burst(px, py, '#ffffff', 14, 240);
-    beep(110, .6, 'sawtooth', .08);
+    sfx.die(); music.stop();
   }
 
   function gameOver() {
     state = 'over';
     items.length = 0;
-    const s = scoreNow();
-    if (s > best) { best = s; saveBest(); }
-    const rk = rankFor(s);
-    document.getElementById('cause').textContent = cause;
-    document.getElementById('rank').textContent = rk[0];
-    document.getElementById('rankNote').textContent = rk[1];
-    document.getElementById('finalScore').textContent = 'Score: ' + s;
-    document.getElementById('finalDetail').textContent = Math.floor(dist()) + ' m, lap ' + lap + ', ' + snacks + ' snacks';
-    document.getElementById('finalBest').textContent = 'Best: ' + best;
-    document.getElementById('over').classList.remove('hidden');
+    const sc = scoreNow();
+    if (sc > best) { best = sc; saveBest(); }
+    const rk = rankFor(sc);
+    lastRun = { name: player ? player.name : 'Runner', score: sc, secs: Math.max(1, Math.round(elapsed)), dist: Math.floor(dist()), snacks, lap, rank: rk[0], cause };
+    $('cause').textContent = cause;
+    $('rank').textContent = rk[0];
+    $('rankNote').textContent = rk[1];
+    $('finalScore').textContent = 'Score: ' + sc;
+    $('finalDetail').textContent = fmtSecs(lastRun.secs) + ' survived | ' + lastRun.dist + ' m | lap ' + lap + ' | ' + snacks + ' snacks';
+    $('shareMsg').textContent = '';
+    $('over').classList.remove('hidden');
+    sfx.over();
     showBest();
+    submitRun();
   }
 
   document.getElementById('playBtn').addEventListener('click', startGame);
@@ -413,7 +774,7 @@
 
   function startJump(silent) {
     jt = 0.0001;
-    if (!silent) beep(480, .1, 'triangle', .04);
+    if (!silent) sfx.jump();
   }
   function jump() {
     if (state !== 'play' || jt > 0 || dizzy > 0 || bounceT > 0) return;
@@ -425,20 +786,22 @@
   }
 
   window.addEventListener('keydown', e => {
+    if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
     const k = e.key.toLowerCase();
     if (['arrowup', 'arrowdown', 'arrowleft', 'arrowright', ' '].includes(k)) e.preventDefault();
     if (k === 'arrowleft' || k === 'a') keyL = true;
     if (k === 'arrowright' || k === 'd') keyR = true;
     if (e.repeat) return;
     if (state === 'menu' || state === 'over') {
-      if (k === 'enter' || k === ' ') startGame();
+      if ((k === 'enter' || k === ' ') && !document.querySelector('.overlay:not(.hidden) #signupForm, #board:not(.hidden)')) startGame();
       return;
     }
     if (k === 'arrowup' || k === 'w' || k === ' ') jump();
     else if (k === 'p' || k === 'escape') togglePause();
-    if (k === 'm') muted = !muted;
+    if (k === 'm') toggleMute();
   });
   window.addEventListener('keyup', e => {
+    if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
     const k = e.key.toLowerCase();
     if (k === 'arrowleft' || k === 'a') keyL = false;
     if (k === 'arrowright' || k === 'd') keyR = false;
@@ -605,6 +968,7 @@
     const baseSp = Math.min(CFG.maxSpeed, CFG.startSpeed + CFG.speedGain * elapsed);   // slow, steady speed-up
     grassF += ((Math.abs(dP) > EDGE ? CFG.grassSlow : 1) - grassF) * (1 - Math.exp(-dt * 8));
     speed = baseSp * slow * grassF;
+    music.setSpeed(baseSp);
     runPhase += dt * (6 + speed / 60);
 
     // steering: the runner only turns while a button is held (tap = small turn, hold = big turn)
@@ -629,7 +993,7 @@
         if (crossed(a, b, (lm.s - 120 + L) % L)) {
           curZone = lm.name; nightTarget = lm.night ? 1 : 0;
           banner = { text: lm.name, t: 2.8, enter: true };
-          beep(700, .15, 'triangle', .04);
+          sfx.landmark();
         }
       });
     }
@@ -637,7 +1001,7 @@
     if (lapNow > lap) {
       lap = lapNow; lapTime = 0; bonus += CFG.lapBonus;
       toast('Lap ' + (lap - 1) + ' done! +' + CFG.lapBonus, '#ffd25e');
-      beep(880, .3, 'triangle', .06);
+      sfx.lap();
     }
     nightAmt += (nightTarget - nightAmt) * (1 - Math.exp(-dt * 1.2));
 
@@ -657,7 +1021,7 @@
     }
     if (jt > 0) {
       jt += dt;
-      if (jt >= CFG.jumpDuration) { jt = 0; z = 0; }
+      if (jt >= CFG.jumpDuration) { jt = 0; z = 0; sfx.land(); }
       else z = Math.sin(Math.PI * jt / CFG.jumpDuration);
     }
 
@@ -691,12 +1055,12 @@
           snacks++; bonus += pts;
           floater(f.name + ' +' + pts + (m > 1 ? '  x' + m : ''), '#ffd25e');
           burst(ip.x, ip.y, '#ffd25e', 12, 180);
-          beep(420 + f.pts * 6, .1, 'triangle', .05);
+          sfx.coin(f.pts);
         } else {
           invin = CFG.offerTime;
           floater('Offer letter!', '#fff2a8');
           toast('Offer letter! Invincible', '#fff2a8');
-          burst(ip.x, ip.y, '#fff2a8', 20, 220); beep(900, .25, 'sine', .06);
+          burst(ip.x, ip.y, '#fff2a8', 20, 220); sfx.offer();
         }
         items.splice(i, 1);
         continue;
@@ -708,7 +1072,7 @@
 
       if (invin > 0) {                        // invincible: smash through everything
         bonus += 10; floater('Smashed +10', '#ffffff');
-        burst(ip.x, ip.y, '#ffffff', 16, 260); beep(260, .12, 'square', .05);
+        burst(ip.x, ip.y, '#ffffff', 16, 260); sfx.smash();
         if (!it.jump) items.splice(i, 1);
         continue;
       }
@@ -718,21 +1082,21 @@
           bonus -= CFG.breakerPenalty; slow = 0.55; shake = 0.25;
           floater('-' + CFG.breakerPenalty, '#ff8a9a');
           toast('Speed breaker! -' + CFG.breakerPenalty + ' points', '#ffb86b');
-          beep(180, .2, 'sawtooth', .05);
+          sfx.breaker();
           break;
         case 'party':
           dizzyMax = CFG.dizzyMin + Math.random() * (CFG.dizzyMax - CFG.dizzyMin);
           dizzy = dizzyMax; jt = 0; z = 0; bounceT = 0;
           toast('Party hangover! Stumbling', '#ff7ad9');
           burst(ip.x, ip.y, '#ff7ad9', 22, 260); burst(ip.x, ip.y, '#7af0ff', 12, 240);
-          beep(240, .3, 'triangle', .06);
+          sfx.party();
           items.splice(i, 1);
           break;
         case 'case':
           bounceMax = CFG.bounceMin + Math.random() * (CFG.bounceMax - CFG.bounceMin);
           bounceT = bounceMax;
           toast('Case study! Auto-jump', '#8fd3ff');
-          burst(ip.x, ip.y, '#ffffff', 16, 200); beep(330, .25, 'square', .05);
+          burst(ip.x, ip.y, '#ffffff', 16, 200); sfx.caseStudy();
           items.splice(i, 1);
           break;
         default:                              // tree, pothole, PComm, professors
@@ -1275,6 +1639,8 @@
     requestAnimationFrame(frame);
   }
   reset();
+  updateWho();
+  if (!player) showSignup();
   requestAnimationFrame(frame);
 })();
 </script>
