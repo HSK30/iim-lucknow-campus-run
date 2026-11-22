@@ -1,8 +1,1 @@
-{
-  "name": "iim-lucknow-campus-run",
-  "version": "1.0.0",
-  "private": true,
-  "dependencies": {
-    "@vercel/blob": "^1.0.0"
-  }
-}
+{"name":"campus-surfers","dependencies":{"@vercel/blob":"^1.0.0"}}

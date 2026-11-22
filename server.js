@@ -1,4 +1,4 @@
-// Campus Run backend. One serverless function, data kept in a Vercel Blob store.
+// Campus Surfers backend. One serverless function, data kept in a Vercel Blob store.
 //
 // Blob path layout (all data is packed into the file name, so the file bodies stay tiny):
 //   n/<slug>~<pid>                       a claimed player name (keeps names unique)
@@ -106,13 +106,6 @@ module.exports = async (req, res) => {
 
     if (!process.env.BLOB_READ_WRITE_TOKEN) return send(503, { error: 'storage_not_connected' });
 
-    // ---- public leaderboard ----
-    if (req.method === 'GET' && action === 'board') {
-      const { board, runs } = await loadAll();
-      const top = board.slice(0, 15).map(p => ({ name: p.name, score: p.best, secs: p.bestSecs, rank: p.bestRank }));
-      return send(200, { top, players: board.length, runs: runs.length });
-    }
-
     // ---- claim a player name ----
     if (req.method === 'POST' && action === 'join') {
       const name = String(body.name || '').trim().replace(/\s+/g, ' ');
@@ -152,22 +145,11 @@ module.exports = async (req, res) => {
       const rank = num(body.rankIdx, 0, 5);
       if ([score, secs, dist, snacks, lap, rank].includes(null)) return send(400, { error: 'bad_run' });
       // plausibility: top speed is about 18 m/s and every score source is bounded
-      if (dist > secs * 20 + 100 || score > dist + snacks * 210 + lap * 100 + secs * 30 + 200) return send(400, { error: 'implausible_run' });
+      if (dist > secs * 30 + 100 || score > dist + snacks * 210 + lap * 100 + secs * 30 + 200) return send(400, { error: 'implausible_run' });
       const known = await listAll(`p/${pid}~`);
       if (!known.length) return send(403, { error: 'unknown_player' });
-      const before = await loadAll();
-      const prevBest = before.players.get(pid) ? before.players.get(pid).best : 0;
       await putText(`s/${Date.now()}~${pid}~${score}~${secs}~${dist}~${snacks}~${lap}~${rank}.txt`, '1');
-      const board = before.board.filter(p => p.pid !== pid);
-      const me = { pid, name: (before.players.get(pid) || {}).name || '', best: Math.max(score, prevBest), bestSecs: secs, bestTs: Date.now(), bestRank: rank };
-      if (score <= prevBest && before.players.get(pid)) { me.bestSecs = before.players.get(pid).bestSecs; me.bestTs = before.players.get(pid).bestTs; me.bestRank = before.players.get(pid).bestRank; }
-      board.push(me);
-      board.sort((a, b) => b.best - a.best || a.bestTs - b.bestTs);
-      const pos = board.findIndex(p => p.pid === pid) + 1;
-      return send(200, {
-        pos, players: board.length, best: me.best, newBest: score > prevBest,
-        top: board.slice(0, 15).map(p => ({ name: p.name, score: p.best, secs: p.bestSecs, rank: p.bestRank, you: p.pid === pid }))
-      });
+      return send(200, { ok: true });
     }
 
     // ---- admin dashboard data ----

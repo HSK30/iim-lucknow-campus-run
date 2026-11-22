@@ -3,6 +3,7 @@
   "builds": [
     { "src": "index.html", "use": "@vercel/static" },
     { "src": "admin.html", "use": "@vercel/static" },
+    { "src": "bgm.mp3", "use": "@vercel/static" },
     { "src": "server.js", "use": "@vercel/node" }
   ],
   "routes": [
